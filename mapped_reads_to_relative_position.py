@@ -63,6 +63,8 @@ fandle_stops.close()
 fandle_reads_in = io.open(sys.argv[2], "rU")
 line_counter = 0
 old_read_pos = -1
+current_win_end = 0
+current_win_start = 0
 for line in fandle_reads_in:
     linestripped = line.strip()
     line_list = linestripped.split("\t")
@@ -71,6 +73,19 @@ for line in fandle_reads_in:
     # Doesn't do the whole search over again if the read position is the same 
     # previous read position
     if read_pos == old_read_pos:
+        current_count = master_count[position_in_master_count]
+        new_count = current_count + 1
+        master_count[position_in_master_count] = new_count
+    # Checks to see if the current read is near the previous read. If it is,
+    # instead of searching through the whole stop codon list again, it will 
+    # just use the previous stop codon. 150 nt seems less than the distance
+    # between any two maize genes, hopefully. It also needs to check to make
+    # sure that the read is still in the current window.
+    elif ((read_pos - old_read_pos) < 150) and ((read_pos - old_read_pos) > 0) \
+     and (read_pos < current_win_end) and (read_pos > current_win_start):
+        old_read_pos = read_pos
+        relative_position = read_pos - current_stop 
+        position_in_master_count = relative_position + window_upstream_distance
         current_count = master_count[position_in_master_count]
         new_count = current_count + 1
         master_count[position_in_master_count] = new_count
@@ -97,13 +112,6 @@ for line in fandle_reads_in:
                 # Allows the script to stop searching once an appropriate window is
                 # found.
                 break
-            #else:
-            #   print("No match")
-            #   print("Current chr: " + str(current_chr))
-            #   print("Read chr: " + str(read_chr))
-            #   print("Current position: " + str(read_pos))
-            #   print("Current window: " + str(current_win_start) + \
-            #    "\t" + str(current_win_end) + "\n\n")
 fandle_reads_in.close()
 
 # Writing the output.
@@ -112,12 +120,3 @@ for x in range(len(master_position)):
     out_fandle.write(str(master_position[x]) + "\t")
     out_fandle.write(str(master_count[x]) + "\n")
 out_fandle.close()
-
-
-
-
-
-
-
-
-
