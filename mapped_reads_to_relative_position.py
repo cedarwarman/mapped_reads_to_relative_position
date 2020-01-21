@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# M.D. Warman
+# C.D. Warman
 # May 15, 2017
 
 # This script takes a list of stop codon positions and a .bed file and outputs
